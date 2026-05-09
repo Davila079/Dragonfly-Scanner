@@ -3,12 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAINO1tPadtgGhlrGbBB3F59NjiDVMbo44",
-  authDomain: "dragonfly-scanner-73991.firebaseapp.com",
-  projectId: "dragonfly-scanner-73991",
-  storageBucket: "dragonfly-scanner-73991.firebasestorage.app",
-  messagingSenderId: "1007028518380",
-  appId: "1:1007028518380:web:ff9dd92f2ec11b3a6d54c9",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
