@@ -25,12 +25,15 @@ export function NavLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row">
       {/* Desktop sidebar */}
       <nav className="hidden md:flex flex-col w-20 lg:w-56 bg-slate-900/50 border-r border-slate-800/50 p-4 shrink-0 sticky top-0 h-screen">
-        <div className="flex items-center gap-2 mb-8 px-2">
+        <button
+          onClick={() => navigate("/scan/select")}
+          className="flex items-center gap-2 mb-8 px-2 hover:opacity-80 transition-opacity"
+        >
           <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
             <Scan className="w-4 h-4 text-emerald-400" />
           </div>
           <span className="text-emerald-400 hidden lg:block text-sm">Dragonfly Scanner</span>
-        </div>
+        </button>
         <div className="flex flex-col gap-1 flex-1">
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.path);

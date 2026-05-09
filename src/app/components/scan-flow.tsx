@@ -23,8 +23,9 @@ export function ScanFlow() {
     if (state.step === "scanning") {
       setState({ step: "results", speciesId: state.speciesId, imageUrl: state.imageUrl });
       if (user.isLoggedIn) {
+        const species = DRAGONFLY_SPECIES.find((s) => s.id === state.speciesId);
         addXp(50, "Escaneo completado");
-        discoverSpecies(state.speciesId);
+        discoverSpecies(state.speciesId, species?.commonName);
       }
     }
   }, [state, addXp, discoverSpecies, user.isLoggedIn]);
