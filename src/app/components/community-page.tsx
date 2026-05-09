@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { motion } from "motion/react";
-import { Heart, Flame, Trophy, Search, Users, Crown, Medal } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Flame, Trophy, Users, Crown, Medal, UserPlus, X, Loader2, Mail } from "lucide-react";
 import { useUser } from "./user-context";
 
 const FEED_ITEMS = [
-  { id: 1, user: "María Torres", avatar: "MT", action: "encontró", species: "Anax imperator", emoji: "🔵", time: "hace 1h", likes: 12, fires: 5 },
-  { id: 2, user: "Carlos López", avatar: "CL", action: "completó", species: "Academia: Anatomía", emoji: "📚", time: "hace 2h", likes: 8, fires: 3 },
-  { id: 3, user: "Ana García", avatar: "AG", action: "encontró", species: "Pantala flavescens", emoji: "🟡", time: "hace 3h", likes: 15, fires: 9 },
-  { id: 4, user: "Diego Ruiz", avatar: "DR", action: "desbloqueó", species: "Badge: Acuático 🌊", emoji: "🏆", time: "hace 4h", likes: 22, fires: 11 },
-  { id: 5, user: "Laura Sánchez", avatar: "LS", action: "encontró", species: "Cordulegaster boltonii", emoji: "🟣", time: "hace 5h", likes: 31, fires: 18 },
+  { id: 1, user: "María Torres", avatar: "MT", action: "encontró", species: "Anax imperator", time: "hace 1h", likes: 12, fires: 5 },
+  { id: 2, user: "Carlos López", avatar: "CL", action: "completó", species: "Academia: Anatomía", time: "hace 2h", likes: 8, fires: 3 },
+  { id: 3, user: "Ana García", avatar: "AG", action: "encontró", species: "Pantala flavescens", time: "hace 3h", likes: 15, fires: 9 },
+  { id: 4, user: "Diego Ruiz", avatar: "DR", action: "desbloqueó", species: "Badge: Acuático 🌊", time: "hace 4h", likes: 22, fires: 11 },
+  { id: 5, user: "Laura Sánchez", avatar: "LS", action: "encontró", species: "Cordulegaster boltonii", time: "hace 5h", likes: 31, fires: 18 },
 ];
 
 const LEADERBOARD = [
@@ -21,43 +20,83 @@ const LEADERBOARD = [
 ];
 
 export function CommunityPage() {
-  const { user } = useUser();
-  const navigate = useNavigate();
-  const [tab, setTab] = useState<"feed" | "leaderboard">("feed");
+  const { user, addFriend } = useUser();
+  const [tab, setTab] = useState<"feed" | "amigos" | "leaderboard">("feed");
   const [reactions, setReactions] = useState<Record<number, { heart: boolean; fire: boolean }>>({});
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  const [friendEmail, setFriendEmail] = useState("");
+  const [addingFriend, setAddingFriend] = useState(false);
+  const [addFriendMsg, setAddFriendMsg] = useState<{ text: string; success: boolean } | null>(null);
 
   const toggleReaction = (id: number, type: "heart" | "fire") => {
-    setReactions((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], [type]: !prev[id]?.[type] },
-    }));
+    setReactions((prev) => ({ ...prev, [id]: { ...prev[id], [type]: !prev[id]?.[type] } }));
+  };
+
+  const handleAddFriend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!friendEmail.trim()) return;
+    setAddingFriend(true);
+    setAddFriendMsg(null);
+    const result = await addFriend(friendEmail.trim());
+    setAddFriendMsg({ text: result.message, success: result.success });
+    setAddingFriend(false);
+    if (result.success) {
+      setFriendEmail("");
+      setTimeout(() => {
+        setShowAddFriend(false);
+        setAddFriendMsg(null);
+      }, 2000);
+    }
+  };
+
+  const openAddFriend = () => {
+    setShowAddFriend(true);
+    setTab("amigos");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-950">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl text-white mb-1">Comunidad</h1>
-          <p className="text-slate-400 text-sm">Descubre qué encuentran otros exploradores</p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl text-white mb-1">Comunidad</h1>
+            <p className="text-slate-400 text-sm">Descubre qué encuentran otros exploradores</p>
+          </div>
+          <button
+            onClick={openAddFriend}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm hover:bg-emerald-500/30 transition-all shrink-0"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span className="hidden sm:inline">Agregar amigo</span>
+          </button>
         </motion.div>
 
         {/* Tabs */}
         <div className="flex gap-1 p-1 bg-slate-900/50 rounded-xl border border-slate-800">
-          <button
-            onClick={() => setTab("feed")}
-            className={`flex-1 py-2 rounded-lg text-sm transition-all ${tab === "feed" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "text-slate-400 border border-transparent"}`}
-          >
-            <Users className="w-4 h-4 inline mr-1" /> Feed
-          </button>
-          <button
-            onClick={() => setTab("leaderboard")}
-            className={`flex-1 py-2 rounded-lg text-sm transition-all ${tab === "leaderboard" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "text-slate-400 border border-transparent"}`}
-          >
-            <Trophy className="w-4 h-4 inline mr-1" /> Ranking
-          </button>
+          {(
+            [
+              { id: "feed", label: "Feed", Icon: Users },
+              { id: "amigos", label: `Amigos${user.friends.length ? ` (${user.friends.length})` : ""}`, Icon: UserPlus },
+              { id: "leaderboard", label: "Ranking", Icon: Trophy },
+            ] as const
+          ).map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={`flex-1 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-1 ${
+                tab === id
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  : "text-slate-400 border border-transparent"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden xs:inline">{label}</span>
+            </button>
+          ))}
         </div>
 
-        {tab === "feed" ? (
+        {/* Feed */}
+        {tab === "feed" && (
           <div className="space-y-3">
             {FEED_ITEMS.map((item, i) => (
               <motion.div
@@ -105,7 +144,136 @@ export function CommunityPage() {
               </motion.div>
             ))}
           </div>
-        ) : (
+        )}
+
+        {/* Amigos */}
+        {tab === "amigos" && (
+          <div className="space-y-4">
+            {/* Add friend form */}
+            <AnimatePresence>
+              {showAddFriend && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="rounded-xl bg-slate-900/50 border border-emerald-500/30 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-white text-sm">Agregar amigo</h3>
+                      <button
+                        onClick={() => {
+                          setShowAddFriend(false);
+                          setAddFriendMsg(null);
+                          setFriendEmail("");
+                        }}
+                        className="text-slate-500 hover:text-white transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <form onSubmit={handleAddFriend} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input
+                          type="email"
+                          placeholder="Correo del amigo"
+                          value={friendEmail}
+                          onChange={(e) => setFriendEmail(e.target.value)}
+                          autoFocus
+                          className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500/50 text-sm"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={addingFriend || !friendEmail.trim()}
+                        className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 text-sm transition-colors flex items-center gap-1 shrink-0"
+                      >
+                        {addingFriend ? <Loader2 className="w-4 h-4 animate-spin" /> : "Agregar"}
+                      </button>
+                    </form>
+                    {addFriendMsg && (
+                      <p className={`text-xs mt-2 ${addFriendMsg.success ? "text-emerald-400" : "text-red-400"}`}>
+                        {addFriendMsg.text}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Friends list or empty state */}
+            {user.friends.length === 0 ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+                <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-7 h-7 text-slate-600" />
+                </div>
+                <p className="text-slate-300 mb-1">Aún no tienes amigos</p>
+                <p className="text-slate-500 text-sm mb-6">Agrega a alguien con su correo electrónico</p>
+                {!showAddFriend && (
+                  <button
+                    onClick={() => setShowAddFriend(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm transition-colors"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Agregar amigo
+                  </button>
+                )}
+              </motion.div>
+            ) : (
+              <div className="space-y-3">
+                {user.friends.map((friend, i) => (
+                  <motion.div
+                    key={friend.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="rounded-xl bg-slate-900/50 border border-slate-800 p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-sm shrink-0 border border-emerald-500/30">
+                        {friend.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm">{friend.name}</p>
+                        <p className="text-slate-500 text-xs truncate">{friend.recentAction}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-emerald-400 text-sm">{friend.xp.toLocaleString()} XP</p>
+                        <p className="text-slate-500 text-xs">{friend.species} especies</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-6 mt-3 pt-3 border-t border-slate-800/70">
+                      <div className="text-center">
+                        <p className="text-white text-sm">{friend.species}</p>
+                        <p className="text-slate-600 text-[10px]">Especies</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-white text-sm">{friend.xp.toLocaleString()}</p>
+                        <p className="text-slate-600 text-[10px]">XP</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-white text-sm">{friend.streak} 🔥</p>
+                        <p className="text-slate-600 text-[10px]">Racha</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+                {!showAddFriend && (
+                  <button
+                    onClick={() => setShowAddFriend(true)}
+                    className="w-full py-3 rounded-xl border border-slate-700 border-dashed text-slate-500 hover:text-emerald-400 hover:border-emerald-500/40 text-sm transition-colors flex items-center justify-center gap-2"
+                  >
+                    <UserPlus className="w-4 h-4" /> Agregar otro amigo
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Leaderboard */}
+        {tab === "leaderboard" && (
           <div className="space-y-4">
             {/* Podium */}
             <div className="flex items-end justify-center gap-3 pt-4 pb-2">
@@ -128,7 +296,9 @@ export function CommunityPage() {
                       {entry.avatar}
                     </div>
                     <p className="text-white text-xs text-center">{entry.name.split(" ")[0]}</p>
-                    <div className={`w-20 ${heights[i]} rounded-t-xl ${bgColors[i]} border ${borderColors[i]} flex flex-col items-center justify-center`}>
+                    <div
+                      className={`w-20 ${heights[i]} rounded-t-xl ${bgColors[i]} border ${borderColors[i]} flex flex-col items-center justify-center`}
+                    >
                       <Icon className={`w-5 h-5 ${colors[i]}`} />
                       <span className={`text-xs ${colors[i]}`}>{entry.xp.toLocaleString()} XP</span>
                     </div>
